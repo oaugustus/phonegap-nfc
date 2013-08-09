@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.content.IntentFilter.MalformedMimeTypeException;
 import android.net.Uri;
 import android.nfc.*;
+import android.nfc.tech.MifareClassic;
 import android.nfc.tech.Ndef;
 import android.nfc.tech.NdefFormatable;
 import android.os.Parcelable;
@@ -37,6 +38,9 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
     private static final String HANDOVER = "handover"; // Android Beam
     private static final String STOP_HANDOVER = "stopHandover";
     private static final String INIT = "init";
+
+    // define as contantes das a›es dispon’veis para o mifare
+    private static final String MIFARE_READ_BLOCK = "mifareReadBlock";
 
     private static final String NDEF = "ndef";
     private static final String NDEF_MIME = "ndef-mime";
@@ -105,12 +109,100 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
         } else if (action.equalsIgnoreCase(INIT)) {
             init(callbackContext);
 
+        } else if (action.equalsIgnoreCase(MIFARE_READ_BLOCK)){
+        	mifareReadBlock(data, callbackContext);
         } else {
+
             // invalid action
             return false;
         }
 
         return true;
+    }
+
+    private void mifareReadBlock(JSONArray data, CallbackContext callbackContext) throws JSONException{
+    	// inicializa o mifare
+    	Tag tagFromIntent = savedIntent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+    	MifareClassic mfc = MifareClassic.get(tagFromIntent);
+
+    	byte[] result;
+
+    	// recupera a chave de autentica‹o
+    	byte[] authKey = hexStringToByteArray(data.getString(0));
+
+    	// recupera o setor que ser‡ autenticado
+    	int sector = data.getInt(1);
+
+    	// recupera o bloco que ser‡ lido
+    	int block = data.getInt(2);
+
+        try {
+        	// conecta ao mifare
+            mfc.connect();
+
+            boolean auth = false;
+            int secCount = mfc.getSectorCount(); int bIndex = 0; int bCount = 0;
+
+            // verifica se o setor solicitado Ž v‡lido
+            if (secCount > sector && sector >= 0){
+                // tenta efetuar a autentica‹o no setor
+                auth = mfc.authenticateSectorWithKeyA(sector, authKey);
+
+                // se autenticou
+                if(auth){
+
+                    // pega o nœmero de blocos do setor
+                    bCount = mfc.getBlockCountInSector(sector);
+
+                    if (bCount > block && block >= 0){
+                        bIndex = mfc.sectorToBlock(sector);
+
+                        for(int i = 0; i <= block; i++){
+                        	Log.i("BLOCO", "BLOCO - " + bIndex);
+                            bIndex++;
+                        }
+
+                        // efetua a leitura do bloco
+                        result = mfc.readBlock(bIndex);
+
+                        // retorna os bytes lidos do bloco
+                        callbackContext.success(getHexString(result));
+
+                    } else {
+                    	callbackContext.error("Bloco inexistente");
+                    }
+
+                }else{ // Falha de autentica‹o
+                	callbackContext.error("Falhou ao autenticar");
+                }
+            } else {
+            	callbackContext.error("Setor inexistente");
+            }
+
+
+        }catch (IOException e) {
+                Log.e(TAG, e.getLocalizedMessage());
+            }
+
+    }
+
+    private static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                                 + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
+    }
+
+    private String getHexString(byte[] b) {
+    	  String result = "";
+    	  for (int i=0; i < b.length; i++) {
+    	    result +=
+    	          Integer.toString( ( b[i] & 0xff ) + 0x100, 16).substring( 1 );
+    	  }
+    	  return result;
     }
 
     private String getNfcStatus() {

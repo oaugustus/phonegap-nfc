@@ -91,7 +91,7 @@ var ndef = {
      * Helper that creates an NDEF record containing plain text.
      *
      * @text String of text to encode
-     * @languageCode ISO/IANA language code. Examples: ‚Äúfi‚Äù, ‚Äúen-US‚Äù, ‚Äúfr- CA‚Äù, ‚Äújp‚Äù. (optional)
+     * @languageCode ISO/IANA language code. Examples: “fi”, “en-US”, “fr- CA”, “jp”. (optional)
      * @id byte[] (optional)
      */
     textRecord: function (text, languageCode, id) {
@@ -405,10 +405,67 @@ var nfc = {
         cordova.exec(win, fail, "NfcPlugin", "removeMimeType", [mimeType]);
     },
 
+
     removeNdefListener: function (callback, win, fail) {
         document.removeEventListener("ndef", callback, false);
         cordova.exec(win, fail, "NfcPlugin", "removeNdef", []);
+    },
+
+    mifareReadBlock : function(key, sector, block, win, fail){
+        cordova.exec(win, fail, "NfcPlugin", "mifareReadBlock", [key, sector, block])
+    },
+
+    concatArray: function (a1, a2) { // this isn't built in?
+        for (var i = 0; i < a2.length; i++) {
+            a1.push(a2[i]);
+        }
+        return a1;
+    },
+
+    bytesToString: function (bytes) {
+        var bytesAsString = "";
+        for (var i = 0; i < bytes.length; i++) {
+            bytesAsString += String.fromCharCode(bytes[i]);
+        }
+        return bytesAsString;
+    },
+
+    // http://stackoverflow.com/questions/1240408/reading-bytes-from-a-javascript-string#1242596
+    stringToBytes: function (str) {
+        var ch, st, re = [];
+        for (var i = 0; i < str.length; i++ ) {
+            ch = str.charCodeAt(i);  // get char
+            st = [];                 // set up "stack"
+            do {
+                st.push( ch & 0xFF );  // push byte to stack
+                ch = ch >> 8;          // shift value down by 1 byte
+            } while ( ch );
+            // add stack contents to result
+            // done because chars have "wrong" endianness
+            re = re.concat( st.reverse() );
+        }
+        // return an array of bytes
+        return re;
+    },
+
+    bytesToHexString: function (bytes) {
+        var dec, hexstring, bytesAsHexString = "";
+        for (var i = 0; i < bytes.length; i++) {
+            if (bytes[i] >= 0) {
+                dec = bytes[i];
+            } else {
+                dec = 256 + bytes[i];
+            }
+            hexstring = dec.toString(16);
+            // zero padding
+            if (hexstring.length == 1) {
+                hexstring = "0" + hexstring;
+            }
+            bytesAsHexString += hexstring;
+        }
+        return bytesAsHexString;
     }
+
    
 };
 
