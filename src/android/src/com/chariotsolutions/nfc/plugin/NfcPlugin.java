@@ -39,7 +39,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
     private static final String STOP_HANDOVER = "stopHandover";
     private static final String INIT = "init";
 
-    // define as contantes das ações disponíveis para o mifare
+    // define as contantes das aÔøΩÔøΩes disponÔøΩveis para o mifare
     private static final String MIFARE_READ_BLOCK = "mifareReadBlock";
 
     private static final String NDEF = "ndef";
@@ -127,13 +127,13 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 
     	byte[] result;
 
-    	// recupera a chave de autenticação
+    	// recupera a chave de autenticaÔøΩÔøΩo
     	byte[] authKey = hexStringToByteArray(data.getString(0));
 
-    	// recupera o setor que será autenticado
+    	// recupera o setor que serÔøΩ autenticado
     	int sector = data.getInt(1);
 
-    	// recupera o bloco que será lido
+    	// recupera o bloco que serÔøΩ lido
     	int block = data.getInt(2);
 
         try {
@@ -143,15 +143,15 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
             boolean auth = false;
             int secCount = mfc.getSectorCount(); int bIndex = 0; int bCount = 0;
 
-            // verifica se o setor solicitado é válido
+            // verifica se o setor solicitado ÔøΩ vÔøΩlido
             if (secCount > sector && sector >= 0){
-                // tenta efetuar a autenticação no setor
+                // tenta efetuar a autenticaÔøΩÔøΩo no setor
                 auth = mfc.authenticateSectorWithKeyA(sector, authKey);
 
                 // se autenticou
                 if(auth){
 
-                    // pega o número de blocos do setor
+                    // pega o nÔøΩmero de blocos do setor
                     bCount = mfc.getBlockCountInSector(sector);
 
                     if (bCount > block && block >= 0){
@@ -172,8 +172,10 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
                     	callbackContext.error("Bloco inexistente");
                     }
 
-                }else{ // Falha de autenticação
-                	callbackContext.error("Falhou ao autenticar");
+                }else{ // Falha de autenticaÔøΩÔøΩo
+                    //Log.i("MIFARE TAG:",tagFromIntent.getId());
+                    callbackContext.success(getHextoString2(tagFromIntent.getId()));
+                	//callbackContext.error("Falhou ao autenticar");
                 }
             } else {
             	callbackContext.error("Setor inexistente");
@@ -196,14 +198,30 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
         return data;
     }
 
-    private String getHexString(byte[] b) {
+    private String getHexString(byte[] b, int cont) {
     	  String result = "";
+
     	  for (int i=0; i < b.length; i++) {
     	    result +=
-    	          Integer.toString( ( b[i] & 0xff ) + 0x100, 16).substring( 1 );
+    	          Integer.toString( ( b[i] & 0xff ) + 0x100, cont).substring( 1 );
+
     	  }
-    	  return result;
+
+          return Util.leftPad(result, 12, "0");
     }
+
+    private String getHextoString2(byte[] b) {
+        String result = "";
+        for (int i=0; i < b.length; i++) {
+
+              Log.i("Mifare Byte:",String.format("%02X ", b[i]));
+              result = String.format("%02X ", b[i])+ result;
+        }
+              Log.i("Mifare Result:",result);
+
+        return result;
+    }
+
 
     private String getNfcStatus() {
         NfcAdapter nfcAdapter = NfcAdapter.getDefaultAdapter(getActivity());
