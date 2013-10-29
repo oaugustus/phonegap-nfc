@@ -166,7 +166,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
                         result = mfc.readBlock(bIndex);
 
                         // retorna os bytes lidos do bloco
-                        callbackContext.success(getHexString(result));
+                        callbackContext.success(getHexString(result, 16));
 
                     } else {
                     	callbackContext.error("Bloco inexistente");
