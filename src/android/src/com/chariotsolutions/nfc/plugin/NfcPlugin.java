@@ -124,8 +124,10 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
     }
     
     private void mifareReadId(JSONArray data, CallbackContext callbackContext) throws JSONException{
-                // inicializa o mifare
+        // inicializa o mifare
         Tag tagFromIntent = savedIntent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+
+        Log.i("MIFARE", "READID - " + getHextoString2(tagFromIntent.getId()));
 
         callbackContext.success(getHextoString2(tagFromIntent.getId()));
 
@@ -177,7 +179,7 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
                         result = mfc.readBlock(bIndex);
 
                         // retorna os bytes lidos do bloco
-                        callbackContext.success(getHexString(result));
+                        callbackContext.success(getHexString(result, 16));
 
                     } else {
                         callbackContext.error("Bloco inexistente");
