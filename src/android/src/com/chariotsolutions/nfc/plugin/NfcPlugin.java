@@ -185,8 +185,8 @@ public class NfcPlugin extends CordovaPlugin implements NfcAdapter.OnNdefPushCom
 
                 }else{ // Falha de autentica��o
                     //Log.i("MIFARE TAG:",tagFromIntent.getId());
-                    callbackContext.success(getHextoString2(tagFromIntent.getId()));
-                    //callbackContext.error("Falhou ao autenticar");
+                    //callbackContext.success(getHextoString2(tagFromIntent.getId()));
+                    callbackContext.error("Falhou ao autenticar");
                 }
             } else {
                 callbackContext.error("Setor inexistente");
