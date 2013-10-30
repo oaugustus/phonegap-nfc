@@ -415,6 +415,10 @@ var nfc = {
         cordova.exec(win, fail, "NfcPlugin", "mifareReadBlock", [key, sector, block])
     },
 
+    mifareReadId : function(win, fail){
+        cordova.exec(win, fail, "NfcPlugin", "mifareReadId", [])
+    },
+
     concatArray: function (a1, a2) { // this isn't built in?
         for (var i = 0; i < a2.length; i++) {
             a1.push(a2[i]);
